@@ -9,8 +9,13 @@ import {
   StyleSheet,
 } from 'react-native';
 
-const PlantContext = createContext();
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+const PlantContext = createContext();
+const Tab = createBottomTabNavigator();
+
+// Manage shared plant information
 function PlantProvider({ children }) {
   const [plants, setPlants] = useState([
     { id: '1', name: 'Snake Plant', watered: false },
@@ -20,7 +25,7 @@ function PlantProvider({ children }) {
 
   const [loading, setLoading] = useState(false);
 
-  // Simulate saving a plant update
+  // Update watering status with a short saving delay
   const waterPlant = (id) => {
     if (loading) return;
 
@@ -46,12 +51,14 @@ function PlantProvider({ children }) {
   );
 }
 
+// First tab: Display the plant collection
 function HomeTab() {
   const { plants, loading } = useContext(PlantContext);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🌱 My Plant Collection</Text>
+      <Text style={styles.subtitle}>Your plants in one place</Text>
 
       {loading && (
         <Text style={styles.loading}>Updating plant information...</Text>
@@ -73,12 +80,14 @@ function HomeTab() {
   );
 }
 
+// Second tab: Manage plant care
 function CareTab() {
   const { plants, waterPlant, loading } = useContext(PlantContext);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>💧 Plant Care Center</Text>
+      <Text style={styles.subtitle}>Manage your watering activities</Text>
 
       {loading && (
         <View style={styles.loadingContainer}>
@@ -113,30 +122,61 @@ function CareTab() {
   );
 }
 
+// Main application with two bottom navigation tabs
 export default function App() {
   return (
     <PlantProvider>
-      <View style={{ flex: 1 }}>
-        <HomeTab />
-        <CareTab />
-      </View>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={{
+            headerStyle: { backgroundColor: '#2E7D32' },
+            headerTintColor: '#FFFFFF',
+            tabBarActiveTintColor: '#2E7D32',
+            tabBarInactiveTintColor: '#888888',
+          }}
+        >
+          <Tab.Screen
+            name="Home"
+            component={HomeTab}
+            options={{
+              title: 'PlantCare',
+              tabBarLabel: 'My Plants',
+            }}
+          />
+
+          <Tab.Screen
+            name="Care"
+            component={CareTab}
+            options={{
+              title: 'Plant Care',
+              tabBarLabel: 'Care',
+            }}
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
     </PlantProvider>
   );
 }
 
+// Application styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F1F8E9',
     padding: 20,
-    paddingTop: 40,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#2E7D32',
     textAlign: 'center',
-    marginBottom: 15,
+    marginTop: 20,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    marginVertical: 15,
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -152,7 +192,7 @@ const styles = StyleSheet.create({
   },
   status: {
     fontSize: 15,
-    color: '#666',
+    color: '#666666',
     marginTop: 8,
   },
   button: {
