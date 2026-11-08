@@ -1,11 +1,14 @@
 
-import React from 'react';
+import React, { createContext } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
 } from 'react-native';
+
+// Create a context for sharing plant information
+const PlantContext = createContext();
 
 // Sample plant collection
 const plants = [
@@ -14,20 +17,28 @@ const plants = [
   { id: '3', name: 'Aloe Vera', watered: true },
 ];
 
-export default function App() {
+// Provider makes plant information available to child components
+function PlantProvider({ children }) {
+  return (
+    <PlantContext.Provider value={{ plants }}>
+      {children}
+    </PlantContext.Provider>
+  );
+}
+
+// Main plant collection screen
+function HomeTab() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>PlantCare</Text>
       <Text style={styles.subtitle}>My Plant Collection</Text>
 
-      {/* Display plant data using FlatList */}
       <FlatList
         data={plants}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.plantName}>{item.name}</Text>
-
             <Text style={styles.status}>
               {item.watered ? '💧 Watered' : '🌵 Needs Water'}
             </Text>
@@ -35,6 +46,15 @@ export default function App() {
         )}
       />
     </View>
+  );
+}
+
+// Wrap the application with the Provider
+export default function App() {
+  return (
+    <PlantProvider>
+      <HomeTab />
+    </PlantProvider>
   );
 }
 
