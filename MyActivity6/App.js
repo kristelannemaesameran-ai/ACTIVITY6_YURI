@@ -4,12 +4,12 @@ import {
   View,
   Text,
   FlatList,
+  TouchableOpacity,
   StyleSheet,
 } from 'react-native';
 
 const PlantContext = createContext();
 
-// Store the shared plant collection
 function PlantProvider({ children }) {
   const [plants, setPlants] = useState([
     { id: '1', name: 'Snake Plant', watered: false },
@@ -24,14 +24,13 @@ function PlantProvider({ children }) {
   );
 }
 
-// Read shared plant data through useContext
+// First screen: Show all plants
 function HomeTab() {
   const { plants } = useContext(PlantContext);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>PlantCare</Text>
-      <Text style={styles.subtitle}>My Plant Collection</Text>
+      <Text style={styles.title}>🌱 My Plant Collection</Text>
 
       <FlatList
         data={plants}
@@ -49,10 +48,42 @@ function HomeTab() {
   );
 }
 
+// Second screen: Plant care information
+function CareTab() {
+  const { plants } = useContext(PlantContext);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>💧 Plant Care Center</Text>
+      <Text style={styles.subtitle}>Your plant care activities</Text>
+
+      <FlatList
+        data={plants}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.plantName}>{item.name}</Text>
+            <Text style={styles.status}>
+              {item.watered ? 'Already Watered' : 'Needs Water'}
+            </Text>
+
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.buttonText}>Water Plant</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+    </View>
+  );
+}
+
 export default function App() {
   return (
     <PlantProvider>
-      <HomeTab />
+      <View style={{ flex: 1 }}>
+        <HomeTab />
+        <CareTab />
+      </View>
     </PlantProvider>
   );
 }
@@ -62,29 +93,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F1F8E9',
     padding: 20,
-    paddingTop: 60,
+    paddingTop: 40,
   },
   title: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#2E7D32',
     textAlign: 'center',
+    marginBottom: 15,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#666',
     textAlign: 'center',
-    marginVertical: 15,
+    color: '#666',
+    marginBottom: 10,
   },
   card: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
+    padding: 18,
     borderRadius: 12,
     marginVertical: 8,
     elevation: 3,
   },
   plantName: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: 'bold',
     color: '#2E7D32',
   },
@@ -92,5 +123,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#666',
     marginTop: 8,
+  },
+  button: {
+    backgroundColor: '#2E7D32',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
