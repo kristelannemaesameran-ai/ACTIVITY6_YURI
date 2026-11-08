@@ -5,6 +5,7 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
   StyleSheet,
 } from 'react-native';
 
@@ -17,30 +18,44 @@ function PlantProvider({ children }) {
     { id: '3', name: 'Aloe Vera', watered: true },
   ]);
 
-  // Change the watering status of the selected plant
+  const [loading, setLoading] = useState(false);
+
+  // Simulate saving a plant update
   const waterPlant = (id) => {
-    setPlants((previousPlants) =>
-      previousPlants.map((plant) =>
-        plant.id === id
-          ? { ...plant, watered: !plant.watered }
-          : plant
-      )
-    );
+    if (loading) return;
+
+    setLoading(true);
+
+    setTimeout(() => {
+      setPlants((previousPlants) =>
+        previousPlants.map((plant) =>
+          plant.id === id
+            ? { ...plant, watered: !plant.watered }
+            : plant
+        )
+      );
+
+      setLoading(false);
+    }, 1000);
   };
 
   return (
-    <PlantContext.Provider value={{ plants, waterPlant }}>
+    <PlantContext.Provider value={{ plants, waterPlant, loading }}>
       {children}
     </PlantContext.Provider>
   );
 }
 
 function HomeTab() {
-  const { plants } = useContext(PlantContext);
+  const { plants, loading } = useContext(PlantContext);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🌱 My Plant Collection</Text>
+
+      {loading && (
+        <Text style={styles.loading}>Updating plant information...</Text>
+      )}
 
       <FlatList
         data={plants}
@@ -59,11 +74,18 @@ function HomeTab() {
 }
 
 function CareTab() {
-  const { plants, waterPlant } = useContext(PlantContext);
+  const { plants, waterPlant, loading } = useContext(PlantContext);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>💧 Plant Care Center</Text>
+
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2E7D32" />
+          <Text style={styles.loading}>Saving changes...</Text>
+        </View>
+      )}
 
       <FlatList
         data={plants}
@@ -75,10 +97,10 @@ function CareTab() {
               {item.watered ? 'Already Watered' : 'Needs Water'}
             </Text>
 
-            {/* Update the selected plant */}
             <TouchableOpacity
               style={styles.button}
               onPress={() => waterPlant(item.id)}
+              disabled={loading}
             >
               <Text style={styles.buttonText}>
                 {item.watered ? 'Mark as Needs Water' : 'Water Plant'}
@@ -143,5 +165,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  loading: {
+    color: '#2E7D32',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });
