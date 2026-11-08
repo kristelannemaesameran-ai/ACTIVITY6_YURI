@@ -5,21 +5,18 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
+  ScrollView,
   ActivityIndicator,
   StyleSheet,
   StatusBar,
 } from 'react-native';
 
-import {
-  SafeAreaProvider,
-  SafeAreaView,
-} from 'react-native-safe-area-context';
-
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
-// Create context for sharing plant data
+// Create context for sharing plant information
 const PlantContext = createContext();
 
 // Create bottom tab navigation
@@ -34,495 +31,437 @@ function PlantProvider({ children }) {
     { id: '4', name: 'Spider Plant', watered: false },
   ]);
 
-  const [loading, setLoading] = useState(false);
+  const [wateringId, setWateringId] = useState(null);
 
   // Update the watering status of a plant
   const waterPlant = (id) => {
-    if (loading) return;
+    if (wateringId !== null) return;
 
-    setLoading(true);
+    setWateringId(id);
 
     setTimeout(() => {
-      setPlants((previousPlants) =>
-        previousPlants.map((plant) =>
+      setPlants((currentPlants) =>
+        currentPlants.map((plant) =>
           plant.id === id
             ? { ...plant, watered: !plant.watered }
             : plant
         )
       );
 
-      setLoading(false);
-    }, 1000);
+      setWateringId(null);
+    }, 800);
   };
 
-  // Share plant data and functions with both tabs
+  // Share plant data with both screens
   return (
-    <PlantContext.Provider value={{ plants, waterPlant, loading }}>
+    <PlantContext.Provider
+      value={{ plants, waterPlant, wateringId }}
+    >
       {children}
     </PlantContext.Provider>
   );
 }
 
-// Home tab displays all plants and their status
+// Home tab displays plant information
 function HomeTab() {
-  const { plants, loading } = useContext(PlantContext);
+  const { plants } = useContext(PlantContext);
 
   // Calculate plant statistics
-  const wateredCount = plants.filter((plant) => plant.watered).length;
-  const needsWaterCount = plants.length - wateredCount;
+  const totalPlants = plants.length;
+  const wateredPlants = plants.filter((plant) => plant.watered).length;
+  const needsWater = totalPlants - wateredPlants;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar backgroundColor="#FFF0F5" barStyle="dark-content" />
-
-      {/* Home screen heading */}
-      <View style={styles.header}>
-        <Text style={styles.emoji}>🪴</Text>
-        <Text style={styles.title}>PlantCare</Text>
-        <Text style={styles.subtitle}>
-          A little love makes plants grow
-        </Text>
-      </View>
-
-      {/* Display plant statistics */}
-      <View style={styles.summaryCard}>
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryNumber}>{plants.length}</Text>
-          <Text style={styles.summaryLabel}>Total Plants</Text>
-        </View>
-
-        <View style={styles.summaryDivider} />
-
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryNumber}>{wateredCount}</Text>
-          <Text style={styles.summaryLabel}>Watered</Text>
-        </View>
-
-        <View style={styles.summaryDivider} />
-
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryNumber}>{needsWaterCount}</Text>
-          <Text style={styles.summaryLabel}>Need Water</Text>
-        </View>
-      </View>
-
-      <Text style={styles.sectionTitle}>My Plant Collection ♡</Text>
-
-      {/* Show loading message when updating */}
-      {loading && (
-        <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" color="#E75480" />
-          <Text style={styles.loading}>Updating plant information...</Text>
-        </View>
-      )}
-
-      {/* Display the shared plant collection */}
-      <FlatList
-        data={plants}
-        keyExtractor={(item) => item.id}
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.list}
-        renderItem={({ item, index }) => (
-          <View style={styles.card}>
+      >
+        {/* Screen heading */}
+        <View style={styles.header}>
+          <Text style={styles.greeting}>Welcome to</Text>
+          <Text style={styles.title}>PlantCare 🌿</Text>
+          <Text style={styles.subtitle}>
+            Take care of your plants every day.
+          </Text>
+        </View>
+
+        {/* Plant statistics */}
+        <View style={styles.statsCard}>
+          <Text style={styles.statsTitle}>Your Plant Summary</Text>
+
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{totalPlants}</Text>
+              <Text style={styles.statLabel}>Total Plants</Text>
+            </View>
+
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{wateredPlants}</Text>
+              <Text style={styles.statLabel}>Watered</Text>
+            </View>
+
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{needsWater}</Text>
+              <Text style={styles.statLabel}>Need Water</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Display all plants */}
+        <Text style={styles.sectionTitle}>My Plant Collection</Text>
+
+        {plants.map((plant) => (
+          <View key={plant.id} style={styles.plantCard}>
             <View style={styles.plantInfo}>
-              <View style={styles.plantIconContainer}>
-                <Text style={styles.plantIcon}>🪴</Text>
+              <View style={styles.plantIcon}>
+                <Ionicons name="leaf" size={25} color="#E75480" />
               </View>
 
               <View style={styles.plantDetails}>
-                <Text style={styles.plantName}>{item.name}</Text>
-                <Text style={styles.plantNumber}>
-                  Plant #{index + 1}
-                </Text>
-              </View>
-
-              {/* Display the current watering status */}
-              <View
-                style={[
-                  styles.statusBadge,
-                  item.watered
-                    ? styles.wateredBadge
-                    : styles.needsWaterBadge,
-                ]}
-              >
-                <Text style={styles.statusBadgeText}>
-                  {item.watered ? 'Watered' : 'Needs Water'}
+                <Text style={styles.plantName}>{plant.name}</Text>
+                <Text
+                  style={[
+                    styles.statusText,
+                    { color: plant.watered ? '#269B72' : '#D6336C' },
+                  ]}
+                >
+                  {plant.watered ? 'Watered' : 'Needs Water'}
                 </Text>
               </View>
             </View>
+
+            <Ionicons
+              name={plant.watered ? 'checkmark-circle' : 'alert-circle'}
+              size={24}
+              color={plant.watered ? '#269B72' : '#E75480'}
+            />
           </View>
-        )}
-      />
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 // Care tab allows users to update plant status
 function CareTab() {
-  const { plants, waterPlant, loading } = useContext(PlantContext);
+  const { plants, waterPlant, wateringId } = useContext(PlantContext);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar backgroundColor="#FFF0F5" barStyle="dark-content" />
-
-      {/* Care screen heading */}
-      <View style={styles.header}>
-        <Text style={styles.emoji}>💧</Text>
-        <Text style={styles.title}>Plant Care Center</Text>
-        <Text style={styles.subtitle}>
-          Give your plants the care they deserve!
-        </Text>
-      </View>
-
-      {/* Show loading indicator */}
-      {loading && (
-        <View style={styles.loadingRow}>
-          <ActivityIndicator size="small" color="#E75480" />
-          <Text style={styles.loading}>Saving changes...</Text>
-        </View>
-      )}
-
-      {/* Display plants with watering buttons */}
-      <FlatList
-        data={plants}
-        keyExtractor={(item) => item.id}
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.list}
-        renderItem={({ item, index }) => (
-          <View style={styles.careCard}>
-            <View style={styles.careHeader}>
-              <Text style={styles.plantIcon}>🪴</Text>
+      >
+        {/* Screen heading */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Plant Care 💧</Text>
+          <Text style={styles.subtitle}>
+            Keep your plants healthy and happy.
+          </Text>
+        </View>
 
-              <View style={styles.plantDetails}>
-                <Text style={styles.plantName}>{item.name}</Text>
-                <Text style={styles.plantNumber}>
-                  Plant #{index + 1}
-                </Text>
+        {/* Show watering instructions */}
+        <View style={styles.infoCard}>
+          <Ionicons name="water" size={30} color="#E75480" />
+          <Text style={styles.infoTitle}>Daily Plant Care</Text>
+          <Text style={styles.infoText}>
+            Check your plants and update their watering status below.
+          </Text>
+        </View>
+
+        {/* Display plant care buttons */}
+        <Text style={styles.sectionTitle}>Manage Your Plants</Text>
+
+        {plants.map((plant) => {
+          const isLoading = wateringId === plant.id;
+
+          return (
+            <View key={plant.id} style={styles.careCard}>
+              <View style={styles.careHeader}>
+                <View style={styles.plantIcon}>
+                  <Ionicons name="leaf" size={25} color="#E75480" />
+                </View>
+
+                <View style={styles.plantDetails}>
+                  <Text style={styles.plantName}>{plant.name}</Text>
+                  <Text style={styles.careStatus}>
+                    {plant.watered ? 'Already watered' : 'Needs watering'}
+                  </Text>
+                </View>
               </View>
+
+              {/* Button updates the plant status */}
+              <TouchableOpacity
+                style={[
+                  styles.actionButton,
+                  plant.watered && styles.wateredButton,
+                ]}
+                onPress={() => waterPlant(plant.id)}
+                disabled={wateringId !== null}
+                activeOpacity={0.8}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>
+                    {plant.watered ? 'Mark as Needs Water' : 'Water Plant'}
+                  </Text>
+                )}
+              </TouchableOpacity>
             </View>
+          );
+        })}
 
-            {/* Show plant watering information */}
-            <View style={styles.careStatus}>
-              <Text style={styles.careStatusText}>
-                {item.watered
-                  ? '💧 This plant has been watered!'
-                  : '🌱 This plant needs some water.'}
-              </Text>
-            </View>
-
-            {/* Button updates the shared plant status */}
-            <TouchableOpacity
-              style={[
-                styles.button,
-                item.watered && styles.secondaryButton,
-                loading && styles.disabledButton,
-              ]}
-              onPress={() => waterPlant(item.id)}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name={item.watered ? 'refresh' : 'water'}
-                size={18}
-                color="#FFFFFF"
-              />
-
-              <Text style={styles.buttonText}>
-                {item.watered ? 'Mark as Needs Water' : 'Water Plant'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+        <Text style={styles.footerText}>
+          Small care makes a big difference! 🌱
+        </Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-// Main application with bottom tab navigation
+// Main application
 export default function App() {
   return (
-    // Provide safe area and shared plant data
     <SafeAreaProvider>
       <PlantProvider>
         <NavigationContainer>
+          <StatusBar barStyle="dark-content" backgroundColor="#FFF0F5" />
 
-          {/* Configure Home and Care tabs */}
+          {/* Bottom tab navigation */}
           <Tab.Navigator
             screenOptions={({ route }) => ({
               headerShown: false,
-              tabBarActiveTintColor: '#D6336C',
-              tabBarInactiveTintColor: '#D88AA5',
-              tabBarStyle: styles.tabBar,
-              tabBarLabelStyle: styles.tabLabel,
-
-              // Set icons for each tab
-              tabBarIcon: ({ color, size, focused }) => {
-                const icons = {
-                  Home: focused ? 'leaf' : 'leaf-outline',
-                  Care: focused ? 'water' : 'water-outline',
-                };
+              tabBarActiveTintColor: '#E75480',
+              tabBarInactiveTintColor: '#B88A9B',
+              tabBarLabelStyle: {
+                fontWeight: '600',
+                fontSize: 12,
+              },
+              tabBarStyle: {
+                backgroundColor: '#FFFFFF',
+                borderTopColor: '#F8D7E3',
+                paddingTop: 8,
+              },
+              tabBarIcon: ({ color, size }) => {
+                const iconName =
+                  route.name === 'Home' ? 'home' : 'water';
 
                 return (
-                  <Ionicons
-                    name={icons[route.name]}
-                    size={size + 2}
-                    color={color}
-                  />
+                  <Ionicons name={iconName} size={size} color={color} />
                 );
               },
             })}
           >
-            <Tab.Screen
-              name="Home"
-              component={HomeTab}
-              options={{
-                title: 'PlantCare',
-                tabBarLabel: 'My Plants',
-              }}
-            />
-
-            <Tab.Screen
-              name="Care"
-              component={CareTab}
-              options={{
-                title: 'Plant Care',
-                tabBarLabel: 'Care',
-              }}
-            />
+            <Tab.Screen name="Home" component={HomeTab} />
+            <Tab.Screen name="Care" component={CareTab} />
           </Tab.Navigator>
-
         </NavigationContainer>
       </PlantProvider>
     </SafeAreaProvider>
   );
 }
 
-// Pink theme and application styles
+// Application styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF0F5',
-    paddingHorizontal: 18,
+  },
+
+  screen: {
+    flex: 1,
+  },
+
+  // Allow content to grow and scroll on smaller screens
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 15,
+    paddingBottom: 45,
   },
 
   header: {
-    alignItems: 'center',
-    paddingTop: 15,
-    paddingBottom: 18,
+    marginBottom: 22,
   },
 
-  emoji: {
-    fontSize: 42,
-    marginBottom: 5,
+  greeting: {
+    fontSize: 16,
+    color: '#A65D79',
   },
 
   title: {
-    fontSize: 27,
-    fontWeight: '900',
+    fontSize: 30,
+    fontWeight: 'bold',
     color: '#D6336C',
-    letterSpacing: 0.5,
-    textAlign: 'center',
+    marginTop: 4,
   },
 
   subtitle: {
-    fontSize: 13,
-    color: '#B84D75',
-    marginTop: 5,
-    textAlign: 'center',
+    fontSize: 14,
+    color: '#9B7182',
+    marginTop: 6,
   },
 
-  summaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingVertical: 20,
-    paddingHorizontal: 8,
+  statsCard: {
+    backgroundColor: '#E75480',
+    padding: 20,
+    borderRadius: 22,
+    marginBottom: 25,
+  },
+
+  statsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 18,
+  },
+
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    marginBottom: 22,
-    elevation: 4,
-    shadowColor: '#D6336C',
-    shadowOpacity: 0.10,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
+    justifyContent: 'space-between',
   },
 
-  summaryItem: {
+  statItem: {
+    alignItems: 'center',
     flex: 1,
-    alignItems: 'center',
   },
 
-  summaryNumber: {
-    fontSize: 25,
-    fontWeight: '900',
-    color: '#D6336C',
+  statNumber: {
+    fontSize: 27,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 
-  summaryLabel: {
+  statLabel: {
     fontSize: 11,
-    color: '#B84D75',
+    color: '#FFFFFF',
     marginTop: 5,
-    textAlign: 'center',
-  },
-
-  summaryDivider: {
-    width: 1,
-    height: 35,
-    backgroundColor: '#FFD6E5',
   },
 
   sectionTitle: {
     fontSize: 19,
     fontWeight: 'bold',
-    color: '#C2185B',
-    marginBottom: 10,
+    color: '#B52D60',
+    marginBottom: 14,
   },
 
-  list: {
-    paddingBottom: 20,
-  },
-
-  card: {
+  plantCard: {
     backgroundColor: '#FFFFFF',
+    padding: 16,
     borderRadius: 18,
-    padding: 14,
-    marginVertical: 7,
-    elevation: 3,
-    shadowColor: '#D6336C',
-    shadowOpacity: 0.10,
-    shadowRadius: 7,
-    shadowOffset: { width: 0, height: 3 },
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    elevation: 2,
   },
 
   plantInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-
-  plantIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 15,
-    backgroundColor: '#FFE0EB',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1,
   },
 
   plantIcon: {
-    fontSize: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 15,
+    backgroundColor: '#FFE4ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
 
   plantDetails: {
     flex: 1,
-    marginLeft: 12,
   },
 
   plantName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#C2185B',
+    color: '#74354E',
   },
 
-  plantNumber: {
-    fontSize: 11,
-    color: '#D88AA5',
-    marginTop: 4,
+  statusText: {
+    fontSize: 13,
+    marginTop: 5,
+    fontWeight: '600',
   },
 
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+  infoCard: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 20,
-  },
-
-  wateredBadge: {
-    backgroundColor: '#FFD6E5',
-  },
-
-  needsWaterBadge: {
-    backgroundColor: '#FFF0F5',
-  },
-
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#C2185B',
-  },
-
-  loadingRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    padding: 20,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 25,
+    elevation: 2,
   },
 
-  loading: {
-    color: '#D6336C',
-    fontSize: 12,
-    marginLeft: 8,
+  infoTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#B52D60',
+    marginTop: 10,
+  },
+
+  infoText: {
+    fontSize: 13,
+    color: '#9B7182',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginTop: 8,
   },
 
   careCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
     padding: 17,
-    marginVertical: 8,
-    elevation: 4,
-    shadowColor: '#D6336C',
-    shadowOpacity: 0.10,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
+    borderRadius: 20,
+    marginBottom: 15,
+    elevation: 2,
   },
 
   careHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 15,
   },
 
   careStatus: {
-    backgroundColor: '#FFF0F5',
-    padding: 12,
-    borderRadius: 12,
-    marginTop: 15,
+    fontSize: 13,
+    color: '#9B7182',
+    marginTop: 5,
   },
 
-  careStatusText: {
-    fontSize: 13,
-    color: '#B84D75',
+  actionButton: {
+    backgroundColor: '#E75480',
+    minHeight: 52,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  wateredButton: {
+    backgroundColor: '#B86B89',
+  },
+
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
     textAlign: 'center',
   },
 
-  button: {
-    backgroundColor: '#E75480',
-    padding: 14,
-    borderRadius: 12,
-    marginTop: 15,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-
-  secondaryButton: {
-    backgroundColor: '#D88AA5',
-  },
-
-  disabledButton: {
-    opacity: 0.6,
-  },
-
-  tabBar: {
-    backgroundColor: '#FFFFFF',
-    height: 65,
-    paddingBottom: 8,
-    paddingTop: 5,
-    borderTopColor: '#FFD6E5',
-    borderTopWidth: 1,
-    elevation: 10,
-  },
-
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: 'bold',
+  footerText: {
+    textAlign: 'center',
+    color: '#B07890',
+    fontSize: 13,
+    marginTop: 10,
+    marginBottom: 5,
   },
 });
