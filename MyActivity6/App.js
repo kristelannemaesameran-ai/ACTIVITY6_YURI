@@ -17,14 +17,24 @@ function PlantProvider({ children }) {
     { id: '3', name: 'Aloe Vera', watered: true },
   ]);
 
+  // Change the watering status of the selected plant
+  const waterPlant = (id) => {
+    setPlants((previousPlants) =>
+      previousPlants.map((plant) =>
+        plant.id === id
+          ? { ...plant, watered: !plant.watered }
+          : plant
+      )
+    );
+  };
+
   return (
-    <PlantContext.Provider value={{ plants, setPlants }}>
+    <PlantContext.Provider value={{ plants, waterPlant }}>
       {children}
     </PlantContext.Provider>
   );
 }
 
-// First screen: Show all plants
 function HomeTab() {
   const { plants } = useContext(PlantContext);
 
@@ -48,14 +58,12 @@ function HomeTab() {
   );
 }
 
-// Second screen: Plant care information
 function CareTab() {
-  const { plants } = useContext(PlantContext);
+  const { plants, waterPlant } = useContext(PlantContext);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>💧 Plant Care Center</Text>
-      <Text style={styles.subtitle}>Your plant care activities</Text>
 
       <FlatList
         data={plants}
@@ -67,8 +75,14 @@ function CareTab() {
               {item.watered ? 'Already Watered' : 'Needs Water'}
             </Text>
 
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Water Plant</Text>
+            {/* Update the selected plant */}
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => waterPlant(item.id)}
+            >
+              <Text style={styles.buttonText}>
+                {item.watered ? 'Mark as Needs Water' : 'Water Plant'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -101,11 +115,6 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
     textAlign: 'center',
     marginBottom: 15,
-  },
-  subtitle: {
-    textAlign: 'center',
-    color: '#666',
-    marginBottom: 10,
   },
   card: {
     backgroundColor: '#FFFFFF',
