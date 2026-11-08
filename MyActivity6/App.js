@@ -1,5 +1,5 @@
 
-import React, { createContext } from 'react';
+import React, { createContext, useState } from 'react';
 import {
   View,
   Text,
@@ -7,26 +7,23 @@ import {
   StyleSheet,
 } from 'react-native';
 
-// Create a context for sharing plant information
 const PlantContext = createContext();
 
-// Sample plant collection
-const plants = [
-  { id: '1', name: 'Snake Plant', watered: false },
-  { id: '2', name: 'Peace Lily', watered: false },
-  { id: '3', name: 'Aloe Vera', watered: true },
-];
-
-// Provider makes plant information available to child components
+// Provider manages the shared plant collection
 function PlantProvider({ children }) {
+  const [plants, setPlants] = useState([
+    { id: '1', name: 'Snake Plant', watered: false },
+    { id: '2', name: 'Peace Lily', watered: false },
+    { id: '3', name: 'Aloe Vera', watered: true },
+  ]);
+
   return (
-    <PlantContext.Provider value={{ plants }}>
+    <PlantContext.Provider value={{ plants, setPlants }}>
       {children}
     </PlantContext.Provider>
   );
 }
 
-// Main plant collection screen
 function HomeTab() {
   return (
     <View style={styles.container}>
@@ -34,7 +31,11 @@ function HomeTab() {
       <Text style={styles.subtitle}>My Plant Collection</Text>
 
       <FlatList
-        data={plants}
+        data={[
+          { id: '1', name: 'Snake Plant', watered: false },
+          { id: '2', name: 'Peace Lily', watered: false },
+          { id: '3', name: 'Aloe Vera', watered: true },
+        ]}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
@@ -49,7 +50,6 @@ function HomeTab() {
   );
 }
 
-// Wrap the application with the Provider
 export default function App() {
   return (
     <PlantProvider>
