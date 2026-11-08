@@ -1,5 +1,5 @@
 
-import React, { createContext, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 
 const PlantContext = createContext();
 
-// Provider manages the shared plant collection
+// Store the shared plant collection
 function PlantProvider({ children }) {
   const [plants, setPlants] = useState([
     { id: '1', name: 'Snake Plant', watered: false },
@@ -24,18 +24,17 @@ function PlantProvider({ children }) {
   );
 }
 
+// Read shared plant data through useContext
 function HomeTab() {
+  const { plants } = useContext(PlantContext);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>PlantCare</Text>
       <Text style={styles.subtitle}>My Plant Collection</Text>
 
       <FlatList
-        data={[
-          { id: '1', name: 'Snake Plant', watered: false },
-          { id: '2', name: 'Peace Lily', watered: false },
-          { id: '3', name: 'Aloe Vera', watered: true },
-        ]}
+        data={plants}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
