@@ -1,35 +1,49 @@
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+} from 'react-native';
 
-// Main PlantCare application
+// Sample plant collection
+const plants = [
+  { id: '1', name: 'Snake Plant', watered: false },
+  { id: '2', name: 'Peace Lily', watered: false },
+  { id: '3', name: 'Aloe Vera', watered: true },
+];
+
 export default function App() {
   return (
     <View style={styles.container}>
-      {/* Application title */}
       <Text style={styles.title}>PlantCare</Text>
+      <Text style={styles.subtitle}>My Plant Collection</Text>
 
-      {/* Welcome message */}
-      <Text style={styles.subtitle}>
-        Welcome to your Smart Plant Companion!
-      </Text>
+      {/* Display plant data using FlatList */}
+      <FlatList
+        data={plants}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.plantName}>{item.name}</Text>
 
-      {/* First sample plant */}
-      <View style={styles.card}>
-        <Text style={styles.plantName}>🌿 Snake Plant</Text>
-        <Text style={styles.status}>Needs Water</Text>
-      </View>
+            <Text style={styles.status}>
+              {item.watered ? '💧 Watered' : '🌵 Needs Water'}
+            </Text>
+          </View>
+        )}
+      />
     </View>
   );
 }
 
-// Basic application styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F1F8E9',
-    justifyContent: 'center',
     padding: 20,
+    paddingTop: 60,
   },
   title: {
     fontSize: 30,
@@ -38,7 +52,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#666',
     textAlign: 'center',
     marginVertical: 15,
@@ -47,6 +61,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     padding: 20,
     borderRadius: 12,
+    marginVertical: 8,
+    elevation: 3,
   },
   plantName: {
     fontSize: 20,
